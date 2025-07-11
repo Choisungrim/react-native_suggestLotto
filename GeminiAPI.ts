@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const GEMINI_API_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-const API_KEY = 'AIzaSyBsJJDZhVSoHXdRBOZRmg3peI7Ms6DwejQ'; // 🔑 여기에 본인의 Gemini API 키 입력
+const API_KEY = ''; // 🔑 여기에 본인의 Gemini API 키 입력
 
 export const callGeminiAPI = async (history: any[]): Promise<string> => {
   try {
