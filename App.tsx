@@ -8,20 +8,21 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import XLSX from 'xlsx';
 import {
   createSchema,
   insertLotto,
   getRecentLotto,
   resetSchema,
 } from './LottoDB';
+import { getLottoPrediction } from './GeminiAPI';
 
 const App = () => {
   const [history, setHistory] = useState<any[]>([]);
+  const [prediction, setPrediction] = useState<string>('');
 
   useEffect(() => {
     createSchema();
-    loadExcelFromAssets();
+    loadHistory();
   }, []);
 
   const loadHistory = () => {
@@ -43,39 +44,16 @@ const App = () => {
     loadHistory();
   };
 
-  const loadExcelFromAssets = async () => {
-    try {
-      const asset = require('./assets/lotto.xlsx');
-      const response = await fetch(asset);
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+  const handlePredictLotto = async () => {
+    const prompt = `다음 로또 번호를 예측해줘. 최근 회차 데이터: \n${history
+      .map(item => {
+        const nums = JSON.parse(item.numbers).join(', ');
+        return `${item.round}회: ${nums}`;
+      })
+      .join('\n')}`;
 
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-      if (data.length > 0) {
-        resetSchema();
-      }
-
-      data.forEach((row: any) => {
-        if (row.length >= 7) {
-          const round = Number(row[0]);
-          const numbers = row.slice(1, 8).map(Number);
-          if (!isNaN(round) && numbers.every(n => !isNaN(n))) {
-            insertLotto(round, numbers);
-          }
-        }
-      });
-
-      loadHistory();
-      Alert.alert(
-        '성공',
-        '엑셀 데이터가 추가되었습니다.\n\n[엑셀 예시]\n회차 | 번호1 | 번호2 | 번호3 | 번호4 | 번호5 | 번호6 | 보너스',
-      );
-    } catch (error) {
-      Alert.alert('오류', '리소스에서 엑셀 파일을 불러오지 못했습니다.');
-    }
+    const result = await getLottoPrediction(prompt);
+    setPrediction(result);
   };
 
   return (
@@ -84,6 +62,18 @@ const App = () => {
 
       <Button title="샘플 회차 추가" onPress={addSample} />
       <Button title="전체 데이터 삭제" onPress={clearAll} color="red" />
+      <Button
+        title="다음 회차 AI 추천"
+        onPress={handlePredictLotto}
+        color="green"
+      />
+
+      {prediction ? (
+        <View style={styles.predictionBox}>
+          <Text style={styles.predictionTitle}>AI 추천 번호:</Text>
+          <Text style={styles.predictionText}>{prediction}</Text>
+        </View>
+      ) : null}
 
       <ScrollView style={styles.scrollBox}>
         {history.map(item => {
@@ -106,6 +96,14 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, textAlign: 'center', marginBottom: 20 },
   scrollBox: { marginTop: 20 },
   item: { fontSize: 16, marginBottom: 10 },
+  predictionBox: {
+    marginVertical: 20,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+  },
+  predictionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  predictionText: { fontSize: 16 },
 });
 
 export default App;

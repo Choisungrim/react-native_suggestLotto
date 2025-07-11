@@ -1,5 +1,3 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-
 /**
  * Metro configuration
  * https://reactnative.dev/docs/metro
@@ -8,8 +6,10 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
  */
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), {
+const defaultConfig = getDefaultConfig(__dirname); // ✅ 이 부분이 꼭 필요!
+
+module.exports = mergeConfig(defaultConfig, {
   resolver: {
-    assetExts: ['xlsx', 'bin', 'txt', 'json', 'png', 'jpg', 'jpeg'], // 엑셀 확장자 추가
+    assetExts: [...defaultConfig.resolver.assetExts, 'xlsx'],
   },
 });

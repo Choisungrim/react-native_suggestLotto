@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@react-native/new-app-screen": "0.80.1",
+    "axios": "^1.10.0",
     "react": "19.1.0",
     "react-native": "0.80.1",
-    "react-native-document-picker": "^9.0.0",
     "react-native-sqlite-storage": "^6.0.1",
     "xlsx": "^0.18.5"
   },
