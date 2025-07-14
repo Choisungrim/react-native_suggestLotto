@@ -19,4 +19,9 @@ class MainActivity : ReactActivity() {
    */
   override fun createReactActivityDelegate(): ReactActivityDelegate =
       DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+
+  override fun onCreate(savedInstanceState: android.os.Bundle?) {
+    super.onCreate(null) // <- 이게 핵심입니다!
+  }
+
 }

@@ -1,37 +1,20 @@
 // GeminiAPI.ts
+import { GoogleGenAI } from '@google/genai';
 
-import axios from 'axios';
-
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-const API_KEY = ''; // 🔑 여기에 본인의 Gemini API 키 입력
+const ai = new GoogleGenAI({
+  apiKey: 'AIzaSyBsJJDZhVSoHXdRBOZRmg3peI7Ms6DwejQ',
+}); // 🔑 본인의 Gemini API 키 입력
 
 export const callGeminiAPI = async (history: any[]): Promise<string> => {
   try {
     const prompt = generatePrompt(history);
 
-    const response = await axios.post(
-      `${GEMINI_API_URL}?key=${API_KEY}`,
-      {
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      },
-    );
+    const response = ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
 
-    const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-
+    const text = (await response).text;
     return text || '추천 결과를 받아오지 못했습니다.';
   } catch (error) {
     console.error('Gemini API 호출 실패:', error);
@@ -50,5 +33,17 @@ const generatePrompt = (history: any[]): string => {
     )
     .join('\n');
 
-  return `다음 회차 로또 번호를 추천해줘. 다음은 최근 회차 데이터야:\n${recent}\n\n추천 번호 6개 + 보너스 번호 1개로 알려줘.`;
+  return `당신은 최고의 수학자이자 통계 기반 예측 모델입니다. 다음 회차 로또 번호를 예측해 주세요.
+다음은 최근 10개 회차의 로또 당첨 번호입니다:
+
+${recent}
+
+규칙:
+- 반드시 6개의 숫자 + 보너스 숫자 1개를 "숫자, 숫자, ..., 숫자 + 보너스(숫자)" 형식으로 출력하세요.
+- 다른 설명이나 문장은 포함하지 마세요. 오직 숫자 추천 결과만 출력해주세요.
+- 추천 번호는 1부터 45 사이의 숫자여야 합니다.
+- 중복된 숫자는 포함하지 마세요.
+- 추천 번호는 반드시 6개이며, 보너스 번호는 1개입니다
+- 추천 번호는 항상 오름차순으로 정렬되어야 합니다.
+- 총 5개의 추천번호를 출력하세요.`;
 };
